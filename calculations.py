@@ -10,8 +10,10 @@ class Calculations:
         # build the ternary system
         # (assume 0 boundary conditions: y2[0]=y2[-1]=0)
         matrix = zeros((n, 3))
+
         result = zeros(n)
         matrix[0, 1] = 1
+
         for i in range(1, n - 1):
             matrix[i, 0] = (points[i][0] - points[i - 1][0]) / 6
             matrix[i, 1] = (points[i + 1][0] - points[i - 1][0]) / 3
@@ -59,6 +61,10 @@ class Calculations:
                     b = t
                     h = after_cur[0] - current[0]
                     y = a * current[1] + b * after_cur[1] + (h**2 / 6) * ((a**3 - a) * sd[i] + (b**3 - b) * sd[i + 1])
+
+                    # y [50 : 560]
+                    y = max(min(y, 560), 50)
+
                     y_curve.append(y)
 
         # list curve points
