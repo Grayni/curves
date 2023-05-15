@@ -1,4 +1,4 @@
-from numpy import empty, float32
+from numpy import array, empty, float32, extract
 
 
 class Point:
@@ -10,6 +10,8 @@ class Point:
         self.curve_points = None
         self.x_lim = None
         self.y_lim = None
+        self.start_y = None
+        self.end_y = None
 
     # tk.Canvas
     def create_oval(*args, **kwargs):
@@ -21,9 +23,17 @@ class Point:
     # adding rules
     def allow_add_point(self, event):
 
-        # rule 1: |event.x - exist_point.x| >= 8
+        # rule 1: event.y limit grid
+        if self.start_y < event.y or event.y < self.end_y:
+            return 0
+
+        # rule 2: event.x > points[1].x; event.x < point[-2].x
+        if event.x < self.points[1][0] or event.x > self.points[-2][0]:
+            return 0
+
+        # rule 3: |event.x - exist_point.x| >= 8
         size_p = len(self.points)
-        distances_x = empty(shape=(size_p,), dtype="float32")
+        distances_x = empty(shape=(size_p,), dtype=float32)
 
         for i in range(size_p):
             distances_x[i] = abs(self.points[i][0] - event.x)
@@ -31,20 +41,14 @@ class Point:
             if distances_x[i] < self.x_lim:
                 return 0
 
-        # rule 2: |event.y - curve_coords.y where event.x == curve_coords.x| < 64
-        size_c = len(self.curve_points)
-        distances_y = empty(shape=(size_c,), dtype="float32")
+        # rule 4: |event.y - curve_coords.y where event.x == curve_coords.x| < 64
 
-        print(type(self.curve_points))
+        np_curve_points = array(self.curve_points)
+        range_event = np_curve_points[np_curve_points[:, 0].astype(int) == event.x]
+        near_point = max(range_event, key=lambda c: c[1])
 
-        for i in range(size_c):
-            distances_y[i] = abs(self.curve_points[i][1] - event.y)
-
-            if distances_y[i] < self.y_lim:
-                self.add_point(event.x, event.y)
-                return 0
-
-
+        if abs(event.y - near_point[1]) > self.y_lim:
+            return 0
 
         self.add_point(event.x, event.y)
 
@@ -52,10 +56,8 @@ class Point:
         return self.create_oval(x-3, y-3, x+3, y+3, fill="#aaaaaa", outline="black", tags="point")
 
     def add_point(self, x, y):
-
         self.points.append((x, y))
         self.points = sorted(self.points, key=lambda c: c[0])
-        #self.draw_point(x1, y1)
 
     def limited_point(self, formula):
         self.x = formula
