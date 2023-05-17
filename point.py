@@ -3,15 +3,18 @@ from numpy import array, empty, float32, extract
 
 class Point:
     def __init__(self):
-        self.points = None
+        self.points = []
         self.x = None
         self.y = None
         self.selected_index = None
-        self.curve_points = None
-        self.x_lim = None
-        self.y_lim = None
+        self.curve_points = []
         self.start_y = None
         self.end_y = None
+        self.lim = {
+            'x': None,
+            'y': None,
+            'remove': None
+        }
 
     # tk.Canvas
     def create_oval(*args, **kwargs):
@@ -20,15 +23,25 @@ class Point:
     def distance_axis(self, i, index_axis, event_var):
         return abs(self.points[i][index_axis] - event_var)
 
+    @staticmethod
+    def distance_one(*args, **kwargs):
+        pass
+        return 0
+
+    def distance(*args, **kwargs):
+        pass
+        return 0
+
     # adding rules
-    def allow_add_point(self, event):
+    def allow_add_point(self):
+        x, y = self.x, self.y
 
         # rule 1: event.y limit grid
-        if self.start_y < event.y or event.y < self.end_y:
+        if y > self.start_y or y < self.end_y:
             return 0
 
         # rule 2: event.x > points[1].x; event.x < point[-2].x
-        if event.x < self.points[1][0] or event.x > self.points[-2][0]:
+        if x < self.points[1][0] or x > self.points[-2][0]:
             return 0
 
         # rule 3: |event.x - exist_point.x| >= 8
@@ -36,21 +49,21 @@ class Point:
         distances_x = empty(shape=(size_p,), dtype=float32)
 
         for i in range(size_p):
-            distances_x[i] = abs(self.points[i][0] - event.x)
+            distances_x[i] = abs(self.points[i][0] - x)
 
-            if distances_x[i] < self.x_lim:
+            if distances_x[i] < self.lim['x']:
                 return 0
 
         # rule 4: |event.y - curve_coords.y where event.x == curve_coords.x| < 64
 
         np_curve_points = array(self.curve_points)
-        range_event = np_curve_points[np_curve_points[:, 0].astype(int) == event.x]
+        range_event = np_curve_points[np_curve_points[:, 0].astype(int) == x]
         near_point = max(range_event, key=lambda c: c[1])
 
-        if abs(event.y - near_point[1]) > self.y_lim:
+        if abs(y - near_point[1]) > self.lim['y']:
             return 0
 
-        self.add_point(event.x, event.y)
+        return 1
 
     def draw_point(self, x, y):
         return self.create_oval(x-3, y-3, x+3, y+3, fill="#aaaaaa", outline="black", tags="point")
@@ -62,4 +75,30 @@ class Point:
     def limited_point(self, formula):
         self.x = formula
         self.points[self.selected_index] = (formula, self.y)
+
+    def choose_point(self, x, y):
+        # choose the nearest point
+        index = min(range(len(self.points)), key=lambda i: self.distance(i, x, y, self.points))
+        self.selected_index = min(max(1, index), len(self.points) - 2)
+        return self.points[self.selected_index]
+
+    def remove_point(self):
+        # remove a point from the list
+        self.points = [point for index, point in enumerate(self.points) if index != self.selected_index]
+
+    def allow_remove_point(self, x, y):
+        # define index & point
+        point = self.choose_point(x, y)
+
+        # rule 1: side points -> const
+        if self.selected_index in (1, len(self.points) - 2):
+            return 0
+
+        # rule 2: distance_remove < 7 => between point & "coords click"
+        distance = self.distance_one(*point, x, y)
+
+        if distance > self.lim['dist_remove']:
+            return 0
+
+        return 1
 

@@ -1,12 +1,16 @@
 import numpy as np
-
+from math import sqrt
 
 class Calculations:
 
     # Points distance
     @staticmethod
-    def distance(i, x, y, points):
-        return (points[i][0]-x)**2 + (points[i][1]-y)**2
+    def distance_one(x1, y1, x2, y2):
+        return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+    def distance(self, i, x, y, points):
+        # sqrt((points[i][0]-x)**2 + (points[i][1]-y)**2)
+        return self.distance_one(*points[i], x, y)
 
     @staticmethod
     def tridiagonal_matrix_algorithm(A, d):
