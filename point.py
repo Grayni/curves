@@ -33,8 +33,8 @@ class Point:
         return 0
 
     # adding rules
-    def allow_add_point(self):
-        x, y = self.x, self.y
+    def allow_add_point(self, event):
+        x, y = event.x, event.y
 
         # rule 1: event.y limit grid
         if y > self.start_y or y < self.end_y:
@@ -86,16 +86,16 @@ class Point:
         # remove a point from the list
         self.points = [point for index, point in enumerate(self.points) if index != self.selected_index]
 
-    def allow_remove_point(self, x, y):
+    def allow_influence_point(self, event):
         # define index & point
-        point = self.choose_point(x, y)
+        point = self.choose_point(event.x, event.y)
 
         # rule 1: side points -> const
         if self.selected_index in (1, len(self.points) - 2):
             return 0
 
         # rule 2: distance_remove < 7 => between point & "coords click"
-        distance = self.distance_one(*point, x, y)
+        distance = self.distance_one(*point, event.x, event.y)
 
         if distance > self.lim['dist_remove']:
             return 0
