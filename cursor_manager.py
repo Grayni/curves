@@ -25,8 +25,8 @@ class CursorManager:
     def delete_cursor(self):
         self.widget.configure(cursor=self.arrow_minus_path)
 
-    def restore_cursor(self, event):
-        self.widget.configure(cursor=self.previous_cursor)
+    # def restore_cursor(self, event):
+    #     self.widget.configure(cursor=self.previous_cursor)
 
     def ctrl_ready(self, event):
         if self.widget.allow_influence_point(event):

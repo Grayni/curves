@@ -2,26 +2,32 @@ from numpy import array, empty, float32, extract
 
 
 class Point:
+
     def __init__(self):
-        self.points = []
-        self.x = None
-        self.y = None
+        self.curve_points = None
         self.selected_index = None
-        self.curve_points = []
-        self.start_y = None
-        self.end_y = None
+
+        self.x = self.y = 0
+        self.start_x = self.end_y = 50
+        self.end_x = self.start_y = 560
+
+        self.start_point = (self.start_x, self.start_y)
+        self.end_point = (self.end_x, self.end_y)
+
+        self.points = [self.start_point, self.start_point, (150, 200), (250, 100), self.end_point, self.end_point]
+
         self.lim = {
-            'x': None,
-            'y': None,
-            'remove': None
+            'x': 8,
+            'y': 63,
+            'dist_remove': 6
         }
 
     # tk.Canvas
     def create_oval(*args, **kwargs):
         pass
 
-    def distance_axis(self, i, index_axis, event_var):
-        return abs(self.points[i][index_axis] - event_var)
+    # def distance_axis(self, i, index_axis, event_var):
+    #     return abs(self.points[i][index_axis] - event_var)
 
     @staticmethod
     def distance_one(*args, **kwargs):
@@ -68,17 +74,17 @@ class Point:
     def draw_point(self, x, y):
         return self.create_oval(x-3, y-3, x+3, y+3, fill="#aaaaaa", outline="black", tags="point")
 
-    def add_point(self, x, y):
-        self.points.append((x, y))
+    def add_point(self):
+        self.points.append((self.x, self.y))
         self.points = sorted(self.points, key=lambda c: c[0])
 
     def limited_point(self, formula):
         self.x = formula
         self.points[self.selected_index] = (formula, self.y)
 
-    def choose_point(self, x, y):
+    def choose_point(self, event):
         # choose the nearest point
-        index = min(range(len(self.points)), key=lambda i: self.distance(i, x, y, self.points))
+        index = min(range(len(self.points)), key=lambda i: self.distance(i, event.x, event.y, self.points))
         self.selected_index = min(max(1, index), len(self.points) - 2)
         return self.points[self.selected_index]
 
@@ -88,7 +94,7 @@ class Point:
 
     def allow_influence_point(self, event):
         # define index & point
-        point = self.choose_point(event.x, event.y)
+        point = self.choose_point(event)
 
         # rule 1: side points -> const
         if self.selected_index in (1, len(self.points) - 2):
