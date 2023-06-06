@@ -8,5 +8,5 @@ def mix_event_bindings(self, root):
     # hover
     root.bind("<Motion>", self.on_enter)
     root.bind("<KeyPress-Control_L>", self.cursor.ctrl_ready)  # KeyPress
-    root.bind('<KeyRelease-Control_L>', self.on_release)
+    root.bind("<KeyRelease-Control_L>", self.on_release)
 
