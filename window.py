@@ -1,57 +1,47 @@
-import sys
-from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QPoint
-from PyQt5.QtGui import QIcon, QCursor, QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, \
-     QWidget, QLabel, QDesktopWidget, QPushButton
 import numpy as np
+from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve
+from PyQt5.QtGui import QIcon, QCursor, QPixmap, QGuiApplication
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget
+from classes.Button import Button
+from classes.Head import Head
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Two Widgets Example")
+
+        # hide frame
         self.setWindowFlag(Qt.FramelessWindowHint)
+
+        self.dragPosition = None
 
         # 2 window sizes
         self.windowSize = np.array([[430, 480], [600, 650]], dtype=np.uint16)
 
+        # window sizes -> animation
         self.animationResizeWindow = QPropertyAnimation(self, b"geometry")
-        self.animationResizeWindow.setDuration(300)
+        self.animationResizeWindow.setDuration(500)
 
         curvatureTime = QEasingCurve(QEasingCurve.OutQuad)
         self.animationResizeWindow.setEasingCurve(curvatureTime)
 
         # window position
-        self.screenSize = QDesktopWidget().screenGeometry().size()
+        self.screenSize = QGuiApplication.primaryScreen().size()
 
         self.setGeometry(
             self.screenSize.width() - self.width() - 200, 140,
             *self.windowSize[0]
         )
 
-        self.coords = QLabel("pass")
-        self.coords.setAlignment(Qt.AlignCenter)
-        self.coords.setStyleSheet("font-size: 24px;")
+        # window Header
+        # H-center
+        self.coords = Head("^__________________^")
 
-        imageCursorHand = QPixmap("./assets/cursors/hand.cur")
-        handCursor = QCursor(imageCursorHand)
+        # H-button_resize
+        self.buttonResize = Button("assets/icons/resize_out.png", "blue", self.resizeWindow)
 
-        # button resize
-        self.buttonResize = QPushButton(self)
-        self.iconResize = QIcon("assets/icons/resize_out.png")
-        self.buttonResize.setFixedSize(50, 50)
-        self.buttonResize.setIcon(self.iconResize)
-        self.buttonResize.setStyleSheet("background-color: blue;")
-        self.buttonResize.clicked.connect(self.resizeWindow)
-        self.buttonResize.setCursor(handCursor)
-
-        # button close
-        self.buttonClose = QPushButton(self)
-        self.buttonClose.setFixedSize(50, 50)
-        self.buttonClose.setIcon(QIcon("assets/icons/close.png"))
-        self.buttonClose.setStyleSheet("background-color: blue;")
-        self.buttonClose.clicked.connect(self.close)
-        self.buttonClose.setCursor(handCursor)
+        # H-button_close
+        self.buttonClose = Button("assets/icons/close.png", "blue", self.close)
 
         self.setupUI()
 
@@ -61,13 +51,11 @@ class MainWindow(QMainWindow):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # header block
+        # header block (H)
         headerWidget = QWidget()
-        headerWidget.setStyleSheet("background: red;")
-        headerWidget.setFixedHeight(50)
-        headerWidget.setContentsMargins(0, 0, 0, 0)
+        headerWidget.setStyleSheet("background: #222; color: #666;")
 
-        # layout top -> header
+        # layout top -> header (H)
         layout.addWidget(headerWidget, alignment=Qt.AlignTop)
 
         # layoutHeader
@@ -115,6 +103,14 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton and self.coords.underMouse():
+            self.dragPosition = event.globalPos() - self.frameGeometry().topLeft()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton and self.coords.underMouse():
+            self.move(event.globalPos() - self.dragPosition)
 
 
 if __name__ == "__main__":
