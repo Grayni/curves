@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
         # H-button_close
         self.buttonClose = Button("assets/icons/close.png", "blue", self.close)
 
+
         self.setupUI()
 
     def setupUI(self):
